@@ -5,13 +5,14 @@ from datasets import load_dataset
 import tokenizer as tk
 from dataset import BilingualDataset, causal_mask
 from sampletransformers import build_transformer
+import training
 
 
 def get_ds(config):
     ds = load_dataset(f"{config['datasource']}", "BanglaNMT")
 
-    tokenizer_src = tk.get_or_build_tokenizer(config, ds, config['lang_src'])
-    tokenizer_tgt = tk.get_or_build_tokenizer(config, ds, config['lang_tgt'])
+    tokenizer_src = training.get_or_build_tokenizer(config, ds, config['lang_src'])
+    tokenizer_tgt = training.get_or_build_tokenizer(config, ds, config['lang_tgt'])
 
     train_data = ds["train"] 
     val_data = ds["validation"]    
