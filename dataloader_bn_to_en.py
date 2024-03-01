@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, Dataloader
+from torch.utils.data import Dataset, DataLoader
 from datasets import load_dataset
 import tokenizer as tk
 from dataset import BilingualDataset, causal_mask
