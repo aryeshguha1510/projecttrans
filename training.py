@@ -6,11 +6,12 @@ from datasets import load_dataset
 import tokenizer as tk
 from dataset import BilingualDataset, causal_mask
 import dataloader_bn_to_en as dl
-from config import get_weights_file_path, get_config 
+from config import get_weights_file_path, get_config,  latest_weights_file_path
 from tqdm import tqdm
 from torch.optim.lr_scheduler import LambdaLR
 import warnings
-import os   
+import os
+from pathlib import Path
 
 def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_len, device):
     sos_idx = tokenizer_tgt.token_to_id('[SOS]')
