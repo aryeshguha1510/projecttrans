@@ -12,6 +12,11 @@ from torch.optim.lr_scheduler import LambdaLR
 import warnings
 import os
 from pathlib import Path
+from tokenizers import Tokenizer
+from tokenizers.models import WordLevel
+from tokenizers.trainers import WordLevelTrainer
+from tokenizers.pre_tokenizers import Whitespace
+from pathlib import Path
 
 def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_len, device):
     sos_idx = tokenizer_tgt.token_to_id('[SOS]')
@@ -50,13 +55,20 @@ def run_validation(model, validation_ds, tokenizer_src, tokenizer_tgt, max_len, 
     source_texts= []
     expected = []
     predicted = []
-    console_width = 80
+    try:
+        # get the console window width
+        with os.popen('stty size', 'r') as console:
+            _, console_width = console.read().split()
+            console_width = int(console_width)
+    except:
+        # If we can't get the console width, use 80 as default
+        console_width = 80
      
     with torch.no_grad():
         for batch in validation_ds:
             count += 1
             encoder_input = batch['encoder_input'].to(device)
-            decoder_input = batch['decoder_input'].to(device)
+            encoder_mask = batch['encoder_mask'].to(device)
             
             assert encoder_input.size(0) == 1, "Batch size must be 1 for validation"
             
@@ -81,7 +93,22 @@ def run_validation(model, validation_ds, tokenizer_src, tokenizer_tgt, max_len, 
                 break
     
         
-    
+def get_all_sentences(ds, lang):
+    for item in ds:
+        yield item['translation'][lang]
+
+def get_or_build_tokenizer(config, ds, lang):
+    tokenizer_path = Path(config['tokenizer_file'].format(lang))
+    if not Path.exists(tokenizer_path):
+        # Most code taken from: https://huggingface.co/docs/tokenizers/quicktour
+        tokenizer = Tokenizer(WordLevel(unk_token="[UNK]"))
+        tokenizer.pre_tokenizer = Whitespace()
+        trainer = WordLevelTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2)
+        tokenizer.train_from_iterator(get_all_sentences(ds, lang), trainer=trainer)
+        tokenizer.save(str(tokenizer_path))
+    else:
+        tokenizer = Tokenizer.from_file(str(tokenizer_path))
+    return tokenizer  
 
 def train_model(config):
     device= torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')

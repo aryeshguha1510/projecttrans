@@ -7,7 +7,7 @@ from tokenizers.pre_tokenizers import Whitespace
 from pathlib import Path
 
 def get_all_sentences(ds, lang):
-    for iten in ds:
+    for item in ds:
         yield item['translation'][lang]
 
 def get_or_build_tokenizer(config, ds,lang):
