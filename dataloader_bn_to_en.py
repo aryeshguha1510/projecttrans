@@ -8,7 +8,7 @@ from sampletransformers import build_transformer
 
 
 def get_ds(config):
-    ds = load_dataset('csebuetnlp/BanglaNMT', f'{config["lang_src"]}-{["lang_tgt"]}')
+    ds = load_dataset(f"{config['datasource']}", f"{config['lang_src']}-{config['lang_tgt']}")
 
     tokenizer_src = tk.get_or_build_tokenizer(config, ds, config['lang_src'])
     tokenizer_tgt = tk.get_or_build_tokenizer(config, ds, config['lang_tgt'])

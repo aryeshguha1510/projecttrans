@@ -7,7 +7,7 @@ def get_config():
         "lr": 10**-4,
         "seq_len": 350,
         "d_model": 512,
-        "datasource": 'BanglaNMT',
+        "datasource": 'csebuetnlp/BanglaNMT',
         "lang_src": "bn",
         "lang_tgt": "en",
         "model_folder": "weights",
