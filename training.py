@@ -94,8 +94,6 @@ def run_validation(model, validation_ds, tokenizer_src, tokenizer_tgt, max_len, 
     
         
 def get_all_sentences(ds, lang):
-    print(type(ds))  # Check the dataset's type
-    print(ds[0])     # Look at the first item to understand its structure
     for item in ds:
         yield item[lang]
         
