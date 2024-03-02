@@ -13,7 +13,7 @@ def get_ds(config):
     ds = load_dataset(f"{config['datasource']}", "BanglaNMT")
 
     
-    #train_data = ds['train'][:10000]
+    train_data = ds['train']
     train_data = random.sample(train_data, int(len(train_data) * 0.005))
     val_data = ds["validation"]    
     test_data = ds["test"]
