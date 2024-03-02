@@ -11,6 +11,7 @@ import random
 
 def get_ds(config):
     ds_raw = load_dataset(f"{config['datasource']}", f'{config["lang_src"]}-{config["lang_tgt"]}', split = 'train')
+    ds_raw=ds_raw[:20000]
     
     # Build tokenizers
     tokenizer_src = training.get_or_build_tokenizer(config, ds_raw, config['lang_src'])
