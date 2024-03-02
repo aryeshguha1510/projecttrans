@@ -15,7 +15,7 @@ def get_ds(config):
     
     train_data = ds['train']
     print(train_data.shape)
-    train_data=train_data[0:10000,:]
+    train_data = list(train_data.values())[:10000]
     #train_data = random.sample(train_data, int(len(train_data) * 0.005))
     val_data = ds["validation"]    
     test_data = ds["test"]
