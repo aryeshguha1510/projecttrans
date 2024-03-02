@@ -11,12 +11,14 @@ import training
 def get_ds(config):
     ds = load_dataset(f"{config['datasource']}", "BanglaNMT")
 
-    tokenizer_src = training.get_or_build_tokenizer(config, ds, config['lang_src'])
-    tokenizer_tgt = training.get_or_build_tokenizer(config, ds, config['lang_tgt'])
+    
 
     train_data = ds["train"] 
     val_data = ds["validation"]    
     test_data = ds["test"]
+    
+    tokenizer_src = training.get_or_build_tokenizer(config, train_data, config['lang_src'])
+    tokenizer_tgt = training.get_or_build_tokenizer(config, train_data, config['lang_tgt'])
     
     train_ds = BilingualDataset(train_data, tokenizer_src, tokenizer_tgt, config['lang_src'], config['lang_tgt'], config['seq_len'])
     val_ds = BilingualDataset(val_data, tokenizer_src, tokenizer_tgt, config['lang_src'], config['lang_tgt'], config['seq_len'])
