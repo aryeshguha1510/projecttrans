@@ -6,14 +6,16 @@ import tokenizer as tk
 from dataset import BilingualDataset, causal_mask
 from sampletransformers import build_transformer
 import training
+import random
 
 
 def get_ds(config):
     ds = load_dataset(f"{config['datasource']}", "BanglaNMT")
 
     
-
-    train_data = ds["train"] 
+    training_data=ds['train']
+    train_data = training_data[0:10000]
+    #train_data = random.sample(train_data, int(len(train_data) * 0.005))
     val_data = ds["validation"]    
     test_data = ds["test"]
     
