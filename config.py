@@ -4,7 +4,7 @@ def get_config():
     return {
         "batch_size": 8,
         "num_epochs": 20,
-        "lr": 10**-4,
+        "lr": 0.0005,
         "seq_len": 250,
         "d_model": 512,
         "datasource": 'Helsinki-NLP/opus-100',
