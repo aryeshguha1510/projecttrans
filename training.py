@@ -122,9 +122,10 @@ def get_or_build_tokenizer(config, ds, lang):
 
 def get_ds(config):
     # It only has the train split, so we divide it overselves
-    ds_raw = load_dataset(f"{config['datasource']}", f"{config['lang_src']}-{config['lang_tgt']}")
-    ds_raw_train = ds_raw['train'].shuffle(seed=42).select([i for i in range(10000)])
-    ds_raw_val = ds_raw['validation']
+    ds_raw_train = load_dataset(f"{config['datasource']}", f"{config['lang_src']}-{config['lang_tgt']}", split="train[0:10000]")
+    #ds_raw_train = ds_raw['train'].shuffle(seed=42).select([i for i in range(10000)])
+    ds_raw_val = load_dataset(f"{config['datasource']}", f"{config['lang_src']}-{config['lang_tgt']}", split="validation")
+    #ds_raw_val = ds_raw['validation']
     
     # Build tokenizers
     tokenizer_src = get_or_build_tokenizer(config, ds_raw_train, config['lang_src'])
@@ -163,9 +164,9 @@ def get_model(config, vocab_src_len, vocab_tgt_len):
 
 def train_model(config):
     # Define the device
-    device = "cuda" if torch.cuda.is_available() else "mps" if torch.has_mps or torch.backends.mps.is_available() else "cpu"
+    device = "cuda:0" if torch.cuda.is_available() else "mps" if torch.has_mps or torch.backends.mps.is_available() else "cpu"
     print("Using device:", device)
-    if (device == 'cuda'):
+    if (device == 'cuda:0'):
         print(f"Device name: {torch.cuda.get_device_name(device.index)}")
         print(f"Device memory: {torch.cuda.get_device_properties(device.index).total_memory / 1024 ** 3} GB")
     elif (device == 'mps'):
