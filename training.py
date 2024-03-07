@@ -122,7 +122,7 @@ def get_or_build_tokenizer(config, ds, lang):
 
 def get_ds(config):
     # It only has the train split, so we divide it overselves
-    ds_raw_train = load_dataset(f"{config['datasource']}", f"{config['lang_src']}-{config['lang_tgt']}", split="train[0:15000]")
+    ds_raw_train = load_dataset(f"{config['datasource']}", f"{config['lang_src']}-{config['lang_tgt']}", split="train[0:10000]")
     #ds_raw_train = load_dataset("Helsinki-NLP/opus-100", "bn-en", split="train[0:10000]")
     #ds_raw_train = ds_raw['train'].shuffle(seed=42).select([i for i in range(10000)])
     ds_raw_val = load_dataset(f"{config['datasource']}", f"{config['lang_src']}-{config['lang_tgt']}", split="validation")
