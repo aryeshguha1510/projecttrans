@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader, random_split
 from datasets import load_dataset
 import src.tokenizer as tk
-from dataset import BilingualDataset, causal_mask
+from src.dataset import BilingualDataset, causal_mask
 from src.sampletransformers import build_transformer
 import src.training as training
 import random

@@ -1,5 +1,5 @@
 from src.sampletransformers import build_transformer
-from dataset import BilingualDataset, causal_mask
+from src.dataset import BilingualDataset, causal_mask
 from src.config import get_config, get_weights_file_path, latest_weights_file_path
 
 
