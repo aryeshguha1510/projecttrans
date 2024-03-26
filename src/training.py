@@ -19,6 +19,9 @@ from tokenizers import Tokenizer
 from tokenizers.models import WordLevel
 from tokenizers.trainers import WordLevelTrainer
 from tokenizers.pre_tokenizers import Whitespace
+import wandb
+from nltk.translate.bleu_score import sentence_bleu
+
 
 import argparse
 parser = argparse.ArgumentParser(description='Input hyperparameters')
@@ -215,7 +218,7 @@ def train_model(config):
         torch.cuda.empty_cache()
         model.train()
         batch_iterator = tqdm(train_dataloader, desc=f"Processing Epoch {epoch:02d}")
-        for batch in batch_iterator:
+        for batch_idx, batch in enumerate(batch_iterator):
 
             encoder_input = batch['encoder_input'].to(device) # (b, seq_len)
             decoder_input = batch['decoder_input'].to(device) # (B, seq_len)
@@ -232,7 +235,29 @@ def train_model(config):
 
             # Compute the loss using a simple cross entropy
             loss = loss_fn(proj_output.view(-1, tokenizer_tgt.get_vocab_size()), label.view(-1))
-            batch_iterator.set_postfix({"loss": f"{loss.item():6.3f}"})
+            _, predicted_ids = torch.max(proj_output, dim=2)            
+            #logging loss
+            wandb.log({"train_loss": loss.item(), "global_step": global_step})
+            if batch_idx % len(train_dataloader) == 0: 
+                source_tokens = [tokenizer_src.id_to_token(tok_id) for tok_id in encoder_input[0]]
+                predicted_tokens = [tokenizer_tgt.id_to_token(tok_id) for tok_id in predicted_ids[0]]
+                source_sentence = ' '.join(source_tokens).split('[PAD]')[0]  
+                
+            
+                predicted_sentence = ' '.join(predicted_tokens).split('[PAD]')[0]  
+                #target sentence
+                target_tokens = [tokenizer_tgt.id_to_token(tok_id) for tok_id in label[0]]
+                target_sentence = ' '.join(target_tokens).split('[PAD]')[0]
+                print(f"Actual Target: {target_sentence}")
+
+                print(f"Source Text: {source_sentence}\n")
+                print(f"Sample Prediction: {predicted_sentence}\n")
+
+                reference = [target_sentence.split()]
+                candidate = predicted_sentence.split()
+                score = sentence_bleu(reference, candidate)
+                print(f"BLEU Score: {score}")
+            batch_iterator.set_postfix({f"loss":f"{loss.item():6.3f}"})
 
             # Backpropagate the loss
             loss.backward()
