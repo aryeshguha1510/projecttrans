@@ -1,5 +1,5 @@
 from sampletransformers import build_transformer
-from dataset import BilingualDataset, causal_mask
+from  DSfn import BilingualDataset, causal_mask
 from config import get_config, get_weights_file_path, latest_weights_file_path
 
 
@@ -25,6 +25,7 @@ from nltk.translate.bleu_score import sentence_bleu
 
 import argparse
 parser = argparse.ArgumentParser(description='Input hyperparameters')
+parser.add_argument('--k',metavar='API Key', type=int, help='Enter the API Key')
 parser.add_argument('batch_size',metavar='Batch Size', type=int, help='Enter the batch size')
 parser.add_argument('num_epochs',metavar='Number of Epochs', type=int, help='Enter the number of epochs')
 parser.add_argument('seq_len',metavar='Sequence Length', type=int, help='Enter the Sequence Length')
@@ -279,6 +280,22 @@ def train_model(config):
             'optimizer_state_dict': optimizer.state_dict(),
             'global_step': global_step
         }, model_filename)
+
+wandb.login(args.k)
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="BengToEng",
+    
+    # track hyperparameters and run metadata
+    config={
+    "batch_size": args.batch_size,
+    "num_epochs": args.num_epochs,
+    "lr": args.lr,
+    "seq_len": args.seq_len,
+    "d_model": args.d_model,
+    }
+)
+ 
 
 
 if __name__ == '__main__':
