@@ -20,8 +20,15 @@ from tokenizers.models import WordLevel
 from tokenizers.trainers import WordLevelTrainer
 from tokenizers.pre_tokenizers import Whitespace
 
+import argparse
+parser = argparse.ArgumentParser(description='Input hyperparameters')
+parser.add_argument('batch_size',metavar='Batch Size', type=int, help='Enter the batch size')
+parser.add_argument('num_epochs',metavar='Number of Epochs', type=int, help='Enter the number of epochs')
+parser.add_argument('seq_len',metavar='Sequence Length', type=int, help='Enter the Sequence Length')
+parser.add_argument('d_model',metavar='d_model', type=int, help='d_model')
+parser.add_argument('lr',metavar='Learning Rate', type=float, help='Enter the learning rate')
 
-from torch.utils.tensorboard import SummaryWriter
+args = parser.parse_args()
 
 def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_len, device):
     sos_idx = tokenizer_tgt.token_to_id('[SOS]')
@@ -54,7 +61,7 @@ def greedy_decode(model, source, source_mask, tokenizer_src, tokenizer_tgt, max_
     return decoder_input.squeeze(0)
 
 
-def run_validation(model, validation_ds, tokenizer_src, tokenizer_tgt, max_len, device, print_msg, global_step, writer, num_examples=2):
+def run_validation(model, validation_ds, tokenizer_src, tokenizer_tgt, max_len, device, print_msg, global_step, num_examples=2):
     model.eval()
     count = 0
 
@@ -138,8 +145,8 @@ def get_ds(config):
     print(train_ds_size)
     print(val_ds_size)
 
-    train_ds = BilingualDataset(ds_raw_train, tokenizer_src, tokenizer_tgt, config['lang_src'], config['lang_tgt'], config['seq_len'])
-    val_ds = BilingualDataset(ds_raw_val, tokenizer_src, tokenizer_tgt, config['lang_src'], config['lang_tgt'], config['seq_len'])
+    train_ds = BilingualDataset(ds_raw_train, tokenizer_src, tokenizer_tgt, config['lang_src'], config['lang_tgt'], args.seq_len)
+    val_ds = BilingualDataset(ds_raw_val, tokenizer_src, tokenizer_tgt, config['lang_src'], config['lang_tgt'], args.seq_len)
 
     # Find the maximum length of each sentence in the source and target sentence
     max_len_src = 0
@@ -155,13 +162,13 @@ def get_ds(config):
     print(f'Max length of target sentence: {max_len_tgt}')
     
 
-    train_dataloader = DataLoader(train_ds, batch_size=config['batch_size'], shuffle=True)
+    train_dataloader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
     val_dataloader = DataLoader(val_ds, batch_size=1, shuffle=True)
 
     return train_dataloader, val_dataloader, tokenizer_src, tokenizer_tgt
 
 def get_model(config, vocab_src_len, vocab_tgt_len):
-    model = build_transformer(vocab_src_len, vocab_tgt_len, config["seq_len"], config['seq_len'], d_model=config['d_model'])
+    model = build_transformer(vocab_src_len, vocab_tgt_len, args.seq_len, args.seq_len, d_model=args.d_model)
     return model
 
 def train_model(config):
@@ -184,10 +191,8 @@ def train_model(config):
 
     train_dataloader, val_dataloader, tokenizer_src, tokenizer_tgt = get_ds(config)
     model = get_model(config, tokenizer_src.get_vocab_size(), tokenizer_tgt.get_vocab_size()).to(device)
-    # Tensorboard
-    writer = SummaryWriter(config['experiment_name'])
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'], eps=1e-9)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, eps=1e-9)
 
     # If the user specified a model to preload before training, load it
     initial_epoch = 0
@@ -206,7 +211,7 @@ def train_model(config):
 
     loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer_src.token_to_id('[PAD]'), label_smoothing=0.1).to(device)
 
-    for epoch in range(initial_epoch, config['num_epochs']):
+    for epoch in range(initial_epoch, args.num_epochs):
         torch.cuda.empty_cache()
         model.train()
         batch_iterator = tqdm(train_dataloader, desc=f"Processing Epoch {epoch:02d}")
@@ -229,10 +234,6 @@ def train_model(config):
             loss = loss_fn(proj_output.view(-1, tokenizer_tgt.get_vocab_size()), label.view(-1))
             batch_iterator.set_postfix({"loss": f"{loss.item():6.3f}"})
 
-            # Log the loss
-            writer.add_scalar('train loss', loss.item(), global_step)
-            writer.flush()
-
             # Backpropagate the loss
             loss.backward()
 
@@ -243,7 +244,7 @@ def train_model(config):
             global_step += 1
 
         # Run validation at the end of every epoch
-        run_validation(model, val_dataloader, tokenizer_src, tokenizer_tgt, config['seq_len'], device, lambda msg: batch_iterator.write(msg), global_step, writer)
+        run_validation(model, val_dataloader, tokenizer_src, tokenizer_tgt, args.seq_len, device, lambda msg: batch_iterator.write(msg), global_step)
 
         # Save the model at the end of every epoch
         model_filename = get_weights_file_path(config, f"{epoch:02d}")
