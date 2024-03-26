@@ -281,9 +281,8 @@ def train_model(config):
             'global_step': global_step
         }, model_filename)
 
-wandb.login(args.k)
+wandb.login(key=args.k)
 wandb.init(
-    anonymous='allow',
     # set the wandb project where this run will be logged
     project="BengToEng",
     
