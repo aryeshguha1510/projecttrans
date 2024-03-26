@@ -283,6 +283,7 @@ def train_model(config):
 
 wandb.login(args.k)
 wandb.init(
+    anonymous='allow',
     # set the wandb project where this run will be logged
     project="BengToEng",
     
